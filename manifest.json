@@ -1,0 +1,25 @@
+{
+  "name": "Execute",
+  "short_name": "Execute",
+  "description": "Centro de mando personal para hábitos, finanzas y enfoque profundo.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0c14",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "logo-pegasus.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo-pegasus.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "finance", "lifestyle"],
+  "orientation": "any"
+}

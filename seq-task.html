@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sequential Work App - Premium Task Management by Nodulat">
+  <title>FlowState — Trabajo Secuencial</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="seq-style.css">
+</head>
+<body>
+
+  <div class="sf-app" id="appRoot">
+    
+    <!-- Sidebar: Library & Recipes -->
+    <aside class="sf-sidebar" id="sidebar">
+      <div class="sf-brand">
+        <div class="sf-logo"></div>
+        <div class="sf-brand-text">FlowState</div>
+      </div>
+
+      <nav class="sf-nav">
+        <div class="sf-nav-title">Biblioteca de Recetas</div>
+        <ul class="sf-recipe-list" id="recipeList">
+          <!-- Populated by JS -->
+        </ul>
+        <button class="sf-btn-ghost w-full" id="newRecipeBtn">+ Crear Nueva Receta</button>
+      </nav>
+
+      <div class="sf-sidebar-footer" style="display:flex; flex-direction:column; align-items:center; gap:1rem;">
+        <a href="index.html" style="display:flex; justify-content:center; align-items:center; gap:0.5rem; text-decoration:none; color:var(--text-muted); font-size:0.85rem; font-weight:600; padding:0.6rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid var(--border); transition:all 0.3s; width:100%;" onmouseover="this.style.color='var(--text-primary)';this.style.background='rgba(255,255,255,0.08)';" onmouseout="this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.03)';">
+          <span>←</span> Central Nodu
+        </a>
+        <span class="sf-footer-text" style="padding-top:0;">by <strong>Nodulat</strong></span>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="sf-workspace">
+      
+      <!-- DEFAULT STATE: No active job -->
+      <div id="emptyState" class="sf-empty-state">
+        <div class="sf-empty-icon">⌘</div>
+        <h2>Selecciona o crea una receta</h2>
+        <p>Inicia un flujo de trabajo para entrar en Single Focus Mode.</p>
+      </div>
+
+      <!-- ACTIVE JOB STATE -->
+      <div id="activeJobState" class="sf-active-job" style="display: none;">
+        
+        <!-- Objective Header -->
+        <header class="sf-objective-header">
+          <div class="sf-obj-meta">
+            <span class="sf-badge" id="jobStatusBadge">EN PROGRESO</span>
+            <span class="sf-timer" id="jobTimer">00:00:00</span>
+          </div>
+          <h1 class="sf-obj-title" id="jobTitle">Título del Objetivo</h1>
+          <p class="sf-obj-desc" id="jobDesc">Descripción general del flujo de trabajo actual.</p>
+          <div class="sf-progress-bar">
+            <div class="sf-progress-fill" id="jobProgressFill"></div>
+          </div>
+        </header>
+
+        <div class="sf-work-area">
+          
+          <!-- Timeline / Cascade of Steps -->
+          <div class="sf-step-map">
+            <h3 class="sf-panel-title">Mapa de Pasos</h3>
+            <div class="sf-timeline" id="stepTimeline">
+              <!-- Populated by JS. Visual timeline of nodes -->
+            </div>
+          </div>
+
+          <!-- Instruction Panel (Single Focus Mode) -->
+          <div class="sf-focus-panel">
+            <div class="sf-panel-title">Enfoque Actual</div>
+            
+            <div class="sf-active-card" id="activeStepCard">
+              <div class="sf-card-index" id="activeStepIndex">Paso 1</div>
+              <h2 class="sf-card-title" id="activeStepTitle">Nombre del Paso</h2>
+              
+              <div class="sf-card-instructions" id="activeStepInstructions">
+                Aquí van las instrucciones detalladas del paso.
+              </div>
+              
+              <div class="sf-card-actions">
+                <button class="sf-btn-primary sf-btn-complete" id="completeStepBtn">Completar Paso & Continuar →</button>
+              </div>
+            </div>
+
+            <!-- Blocked Future Steps Preview -->
+            <div class="sf-upcoming-preview" id="upcomingPreview">
+              <div class="sf-upcoming-lock">🔒 Siguiente paso bloqueado hasta completar el actual</div>
+              <div class="sf-upcoming-title" id="upcomingStepTitle">Cargando...</div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: Crear Receta -->
+  <div class="sf-modal-overlay" id="recipeModalOverlay">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h2 class="sf-modal-title">Nueva Receta de Trabajo</h2>
+        <button class="sf-modal-close" id="closeRecipeModal">×</button>
+      </div>
+      <div class="sf-modal-body">
+        <div class="sf-field">
+          <label for="recipeTitleInput">Objetivo / Nombre</label>
+          <input type="text" id="recipeTitleInput" class="sf-input" placeholder="Ej: Publicar Video en YouTube">
+        </div>
+        <div class="sf-field">
+          <label for="recipeDescInput">Descripción Corta</label>
+          <input type="text" id="recipeDescInput" class="sf-input" placeholder="Pasos para subir y optimizar el video.">
+        </div>
+        
+        <div class="sf-steps-editor">
+          <div class="sf-field-header">
+            <label>Pasos Secuenciales</label>
+            <button class="sf-btn-text" id="addStepInputBtn">+ Añadir</button>
+          </div>
+          <div id="recipeStepsContainer" class="sf-steps-container">
+            <!-- Dynamic step inputs -->
+          </div>
+        </div>
+
+        <button class="sf-btn-primary w-full mt-4" id="saveRecipeBtn">Guardar Receta</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-javascript@2"></script>
+  <script src="auth-app.js"></script>
+  <script src="seq-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Gestión Financiera Premium - Nodu">
+  <title>Finanzas 50/30/20 — Nodu</title>
+  
+  <!-- Core Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgLayer1: '#0a0a0a',
+            bgLayer2: '#111111',
+            bgLayer3: '#1a1a1a',
+            borderLayer: 'rgba(255,255,255,0.08)',
+            accentGold: '#d4a017',
+            accentGoldDim: 'rgba(212,160,23,0.15)',
+            textMain: '#f0e6c8',
+            textDim: '#a8b2d1',
+            textMuted: '#545c80',
+            needs: '#3b82f6', // Blue
+            wants: '#a855f7', // Purple
+            saves: '#10b981', // Green
+            alert: '#ef4444', // Red
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #0a0a0a; color: #f0e6c8; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 99px; }
+    .bento-card { background: #111111; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; }
+    .bento-card-gold { background: linear-gradient(135deg, rgba(212,160,23,0.1), #111111); border: 1px solid rgba(212,160,23,0.3); }
+    .input-field { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); color: #f0e6c8; border-radius: 8px; padding: 12px; width: 100%; outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: #d4a017; }
+    /* Hide number arrows */
+    input[type="number"]::-webkit-outer-spin-button, 
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  </style>
+
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Supabase & Execute Auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-javascript@2"></script>
+  <script src="auth-app.js"></script>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <!-- React Logic -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const LS_KEY = 'gadzhi_finanzas_react_data';
+    const OLD_LS_KEY = 'gadzhi_finanzas_data'; // We overwrite this to keep Nodu synced
+
+    // Formatters
+    const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const getMonthKey = (date) => `${date.getFullYear()}-${date.getMonth() + 1}`; // e.g. "2026-3"
+
+    // Icon component helper
+    const Icon = ({ name, size=20, className="" }) => {
+      // In a real build we'd use lucide-react. Here we fake it with spans or emojis since Lucide browser script manipulates DOM differently.
+      const emojiMap = {
+        'ChevronLeft': '←', 'ChevronRight': '→', 'Home': '🏠', 'Coffee': '☕', 
+        'TrendingUp': '📈', 'Plus': '+', 'ArrowLeft': '←', 'Trash2': '🗑️', 'DollarSign': '$'
+      };
+      return <span className={`text-xl ${className}`} style={{fontSize: size}}>{emojiMap[name] || name}</span>;
+    };
+
+    function App() {
+      const [mounted, setMounted] = useState(false);
+      
+      // Global State
+      // History format: { id, type: 'inc' | 'exp', cat: 'needs'|'wants'|'saves'|null, amt: number, desc: string, date: string, monthKey: string }
+      const [transactions, setTransactions] = useState([]);
+      const [currentMonthKey, setCurrentMonthKey] = useState(getMonthKey(new Date()));
+      
+      // UI State
+      const [modalOpen, setModalOpen] = useState(null); // 'inc' | 'exp' | null
+      const [formData, setFormData] = useState({ amt: '', desc: '', cat: 'needs' });
+
+      // --- 1. Load Data ---
+      useEffect(() => {
+        const loadD = localStorage.getItem(LS_KEY);
+        if (loadD) {
+          try {
+            const pa = JSON.parse(loadD);
+            if(pa.transactions) setTransactions(pa.transactions);
+          } catch(e){}
+        }
+        setMounted(true);
+      }, []);
+
+      // --- 2. Save Data & Sync to Nodu ---
+      useEffect(() => {
+        if(!mounted) return;
+        
+        localStorage.setItem(LS_KEY, JSON.stringify({ transactions }));
+        
+        // Sync total accumulated savings/wealth for Nodu Dashboard
+        const totalWealth = transactions.reduce((acc, tx) => {
+          if (tx.type === 'inc') return acc + tx.amt;
+          if (tx.type === 'exp') return acc - tx.amt;
+          return acc;
+        }, 0);
+        
+        localStorage.setItem(OLD_LS_KEY, JSON.stringify({ totalBalance: totalWealth }));
+        if (window.ExecuteAuth && typeof window.ExecuteAuth.saveAndSync === 'function') {
+          window.ExecuteAuth.saveAndSync();
+        }
+      }, [transactions, mounted]);
+
+      // --- 3. Derived State (Calculations) ---
+      const currentMonthTx = useMemo(() => {
+        return transactions.filter(tx => tx.monthKey === currentMonthKey);
+      }, [transactions, currentMonthKey]);
+
+      const monthIncome = useMemo(() => {
+        return currentMonthTx.filter(tx => tx.type === 'inc').reduce((sum, tx) => sum + tx.amt, 0);
+      }, [currentMonthTx]);
+
+      const limits = {
+        needs: monthIncome * 0.50,
+        wants: monthIncome * 0.30,
+        saves: monthIncome * 0.20
+      };
+
+      const spent = useMemo(() => {
+        const s = { needs: 0, wants: 0, saves: 0 };
+        currentMonthTx.filter(tx => tx.type === 'exp').forEach(tx => {
+          if(s[tx.cat] !== undefined) s[tx.cat] += tx.amt;
+        });
+        return s;
+      }, [currentMonthTx]);
+
+      // Global Wealth (All Months)
+      const totalWealth = useMemo(() => {
+         return transactions.reduce((acc, tx) => {
+          if (tx.type === 'inc') return acc + tx.amt;
+          if (tx.type === 'exp') return acc - tx.amt;
+          return acc;
+        }, 0);
+      }, [transactions]);
+
+      // Global Savings (All Months - specific to saves category)
+      const totalSavedHistoric = useMemo(() => {
+        // Technically wealth is what matters, but let's calculate what was explicitly put into 'saves' minus what was taken from it?
+        // Let's assume 'saves' expenses are "investments". Overall wealth is simpler and more accurate.
+        return totalWealth;
+      }, [totalWealth]);
+
+
+      // --- Actions ---
+      const handleMonthChange = (offset) => {
+        // Parse "YYYY-M"
+        let [y, m] = currentMonthKey.split('-').map(Number);
+        m += offset;
+        if (m > 12) { m = 1; y++; }
+        if (m < 1) { m = 12; y--; }
+        setCurrentMonthKey(`${y}-${m}`);
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const amt = parseFloat(formData.amt);
+        if(!amt || amt <= 0) return alert("Ingresa un monto válido");
+
+        const newTx = {
+          id: Date.now().toString(),
+          type: modalOpen,
+          cat: modalOpen === 'exp' ? formData.cat : null,
+          amt: amt,
+          desc: formData.desc || (modalOpen === 'inc' ? 'Ingreso' : 'Gasto'),
+          date: new Date().toISOString(),
+          monthKey: currentMonthKey // attach to currently viewed month
+        };
+
+        setTransactions([newTx, ...transactions]);
+        setModalOpen(null);
+        setFormData({ amt: '', desc: '', cat: 'needs' });
+      };
+
+      const deleteTx = (id) => {
+        if(confirm("¿Eliminar movimiento?")) {
+          setTransactions(transactions.filter(t => t.id !== id));
+        }
+      };
+
+      // --- UI Helpers ---
+      const getMonthName = (mk) => {
+        const [y, m] = mk.split('-');
+        const date = new Date(y, m-1, 1);
+        return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      };
+
+      const ProgressBar = ({ label, limit, spentAmt, colorClass, bgClass }) => {
+        const pct = limit > 0 ? (spentAmt / limit) * 100 : 0;
+        const boundedPct = Math.min(100, Math.max(0, pct));
+        const isOver = pct > 100;
+        const available = limit - spentAmt;
+
+        return (
+          <div className="mt-4">
+            <div className="flex justify-between items-end mb-2">
+              <div>
+                <span className="text-xs uppercase tracking-wider font-bold text-textDim">{label}</span>
+                <div className="text-2xl font-display font-bold mt-1 text-textMain">{fmt.format(available)}</div>
+              </div>
+              <div className="text-right">
+                <div className={`text-xs font-semibold ${isOver ? 'text-alert' : 'text-textDim'}`}>
+                  {fmt.format(spentAmt)} / {fmt.format(limit)}
+                </div>
+              </div>
+            </div>
+            <div className="w-full h-2 rounded-full bg-bgLayer3 overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-alert' : bgClass}`} 
+                style={{width: `${boundedPct}%`}}
+              />
+            </div>
+          </div>
+        );
+      };
+
+      if (!mounted) return null;
+
+      return (
+        <div className="min-h-screen flex flex-col md:flex-row-reverse bg-bgLayer1 font-sans text-textMain">
+          
+          {/* Main Dashboard */}
+          <main className="flex-1 p-6 md:p-10 h-screen overflow-y-auto">
+            
+            {/* Header */}
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight">
+                  Gestión <span className="text-accentGold">50/30/20</span>
+                </h1>
+                <p className="text-textDim mt-1 text-sm font-medium">Patrimonio Total: <strong className="text-accentGold">{fmt.format(totalWealth)}</strong></p>
+              </div>
+
+              {/* Month Selector */}
+              <div className="flex items-center gap-4 bg-bgLayer2 px-4 py-2 rounded-full border border-borderLayer">
+                <button onClick={() => handleMonthChange(-1)} className="hover:text-accentGold transition-colors px-2">←</button>
+                <span className="font-bold text-sm min-w-[120px] text-center capitalize">
+                  {getMonthName(currentMonthKey)}
+                </span>
+                <button onClick={() => handleMonthChange(1)} className="hover:text-accentGold transition-colors px-2">→</button>
+              </div>
+            </header>
+
+            {/* Actions & Global Income */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <div className="bento-card-gold flex items-center justify-between cursor-pointer hover:scale-[1.02] transition-transform"
+                   onClick={() => { setModalOpen('inc'); setFormData({...formData, cat:'inc'}); }}>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-accentGold mb-1">Ingresos del Mes</div>
+                  <div className="text-3xl font-display font-black">{fmt.format(monthIncome)}</div>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-accentGoldDim text-accentGold flex items-center justify-center text-2xl">
+                  +
+                </div>
+              </div>
+
+              <div className="bento-card flex items-center justify-between cursor-pointer hover:scale-[1.02] transition-transform border-dashed border-2 hover:border-textDim"
+                   onClick={() => { setModalOpen('exp'); setFormData({...formData, cat:'needs'}); }}>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-textDim mb-1">Registrar Movimiento</div>
+                  <div className="text-lg font-medium text-textMuted">Gasto o Inversión</div>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-bgLayer3 text-textDim border border-borderLayer flex items-center justify-center text-xl">
+                  -
+                </div>
+              </div>
+            </div>
+
+            {/* 50/30/20 Bento Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              
+              {/* Needs */}
+              <div className="bento-card">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">🏠</span>
+                  <h3 className="font-bold text-lg">Necesidades</h3>
+                </div>
+                <p className="text-xs text-textMuted mb-4 line-clamp-2">50% para alquiler, comida básica, servicios y transporte.</p>
+                <ProgressBar 
+                  label="Disponible" limit={limits.needs} spentAmt={spent.needs} 
+                  bgClass="bg-needs" colorClass="text-needs" 
+                />
+              </div>
+
+              {/* Wants */}
+              <div className="bento-card">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">☕</span>
+                  <h3 className="font-bold text-lg">Deseos</h3>
+                </div>
+                <p className="text-xs text-textMuted mb-4 line-clamp-2">30% para salidas, hobbies, compras y suscripciones.</p>
+                <ProgressBar 
+                  label="Disponible" limit={limits.wants} spentAmt={spent.wants} 
+                  bgClass="bg-wants" colorClass="text-wants" 
+                />
+              </div>
+
+               {/* Saves */}
+               <div className="bento-card">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">📈</span>
+                  <h3 className="font-bold text-lg">Ahorro / Deuda</h3>
+                </div>
+                <p className="text-xs text-textMuted mb-4 line-clamp-2">20% para fondo de emergencia, inversiones o deudas.</p>
+                <ProgressBar 
+                  label="Disponible" limit={limits.saves} spentAmt={spent.saves} 
+                  bgClass="bg-saves" colorClass="text-saves" 
+                />
+              </div>
+            </div>
+
+            {/* Transactions List */}
+            <section className="bento-card p-0 overflow-hidden">
+              <div className="p-6 border-b border-borderLayer">
+                <h2 className="text-lg font-bold">Historial de Movimientos</h2>
+              </div>
+              <div className="max-h-[400px] overflow-y-auto w-full">
+                {currentMonthTx.length === 0 ? (
+                  <div className="p-12 text-center text-textMuted">No hay movimientos en este mes.</div>
+                ) : (
+                  <div className="divide-y divide-borderLayer">
+                    {currentMonthTx.map(tx => (
+                      <div key={tx.id} className="p-4 px-6 hover:bg-bgLayer3 transition-colors flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-2 h-8 rounded-full ${tx.type==='inc'?'bg-accentGold' : (tx.cat==='needs'?'bg-needs': tx.cat==='wants'?'bg-wants':'bg-saves')}`}></div>
+                          <div>
+                            <div className="font-semibold text-sm">{tx.desc}</div>
+                            <div className="text-xs text-textMuted capitalize">
+                              {new Date(tx.date).toLocaleDateString()} • {tx.type === 'inc' ? 'Ingreso' : tx.cat}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className={`font-bold font-display ${tx.type==='inc'?'text-accentGold':'text-textMain'}`}>
+                            {tx.type === 'inc' ? '+' : '-'}{fmt.format(tx.amt)}
+                          </div>
+                          <button onClick={()=>deleteTx(tx.id)} className="opacity-0 group-hover:opacity-100 text-textMuted hover:text-alert transition-all">
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+          </main>
+
+          {/* Sidebar */}
+          <aside className="w-full md:w-64 bg-bgLayer2 border-r md:border-b-0 border-borderLayer flex flex-col p-6 order-last md:order-first">
+            <div className="flex items-center gap-3 mb-10 pb-6 border-b border-borderLayer">
+              <span className="text-3xl drop-shadow-[0_0_8px_rgba(212,160,23,0.7)]">⚖️</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black tracking-widest text-accentGold">FINANZAS</span>
+                <span className="text-[8px] tracking-wider text-textDim uppercase">Nodu OS</span>
+              </div>
+            </div>
+
+            <nav className="mt-auto flex flex-col gap-4">
+              <a href="index.html" className="flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.03)] border border-borderLayer hover:bg-[rgba(255,255,255,0.08)] text-textDim hover:text-textMain py-3 px-4 rounded-lg text-sm font-semibold transition-all">
+                ← Volver a Nodu
+              </a>
+            </nav>
+          </aside>
+
+          {/* Modal */}
+          {modalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-bgLayer2 border border-borderLayer rounded-2xl w-full max-w-md p-6 shadow-2xl animate-[fadeIn_0.2s_ease]">
+                
+                <h2 className="text-2xl font-bold mb-1">
+                  {modalOpen === 'inc' ? 'Añadir Ingreso' : 'Registrar Gasto'}
+                </h2>
+                <p className="text-textDim text-sm mb-6">
+                  {modalOpen === 'inc' ? 'Re-calcula la división automáticamente.' : 'Afecta tu presupuesto del mes actual.'}
+                </p>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                  {modalOpen === 'exp' && (
+                    <div>
+                      <label className="block text-xs font-bold text-textMuted uppercase tracking-wider mb-2">Categoría</label>
+                      <select 
+                        required
+                        className="input-field"
+                        value={formData.cat}
+                        onChange={(e)=>setFormData({...formData, cat: e.target.value})}
+                      >
+                        <option value="needs">Necesidad (50%)</option>
+                        <option value="wants">Deseo (30%)</option>
+                        <option value="saves">Ahorro/Inversión (20%)</option>
+                      </select>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-textMuted uppercase tracking-wider mb-2">Monto ($)</label>
+                    <input 
+                      type="number" step="0.01" min="0.01" required autoFocus
+                      className="input-field text-xl font-display font-medium"
+                      placeholder="0.00"
+                      value={formData.amt}
+                      onChange={(e)=>setFormData({...formData, amt: e.target.value})}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-textMuted uppercase tracking-wider mb-2">Descripción</label>
+                    <input 
+                      type="text" required
+                      className="input-field"
+                      placeholder={modalOpen === 'inc' ? 'Ej. Salario, Venta...' : 'Ej. Supermercado, Netflix...'}
+                      value={formData.desc}
+                      onChange={(e)=>setFormData({...formData, desc: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-borderLayer">
+                    <button type="button" onClick={()=>setModalOpen(null)} className="px-4 py-2 text-sm font-semibold text-textDim hover:text-textMain transition-colors">
+                      Cancelar
+                    </button>
+                    <button type="submit" className={`px-6 py-2 rounded-lg text-sm font-bold text-black transition-transform active:scale-95 ${modalOpen === 'inc' ? 'bg-accentGold' : 'bg-white'}`}>
+                      {modalOpen === 'inc' ? 'Guardar Ingreso' : 'Registrar Gasto'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+</body>
+</html>

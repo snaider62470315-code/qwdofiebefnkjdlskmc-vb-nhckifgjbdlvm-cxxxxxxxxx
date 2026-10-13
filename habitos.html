@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="description" content="Hábitos Gadzhi — Tracker de hábitos diario, semanal y mensual con metas anuales y calendario." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Hábitos Gadzhi</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-shell">
+    
+    <!-- ══ PROFILE HEADER ══ -->
+    <header class="profile-header"></header>
+
+    <!-- ── Hamburger (mobile only) ── -->
+    <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- ── Sidebar overlay (mobile) ── -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">⚡</div>
+        <div class="logo-text">
+          <span class="logo-title">HÁBITOS</span>
+          <span class="logo-sub">GADZHI</span>
+        </div>
+        <!-- Close button (mobile) -->
+        <button class="sidebar-close" id="sidebarClose" aria-label="Cerrar menú">✕</button>
+      </div>
+
+      <ul class="nav-list">
+        <li class="nav-item active" data-tab="monthly" id="nav-monthly">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">Centro de Hábitos</span>
+        </li>
+        <li class="nav-item" data-tab="calendar" id="nav-calendar">
+          <span class="nav-icon">🗓️</span>
+          <span class="nav-label">Calendario</span>
+        </li>
+        <li class="nav-item" data-tab="annual" id="nav-annual">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Metas Anuales</span>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer" style="display:flex; flex-direction:column; align-items:center; gap:0.8rem;">
+        <div id="ndHabitosUserPill" style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.75rem; color:#f1c40f; background:rgba(241,196,15,0.08); border:1px solid rgba(241,196,15,0.2); border-radius:20px; padding:5px 10px; width:88%; cursor:pointer;" onclick="if(window.ExecuteAuth) ExecuteAuth.promptChangeEmail();" title="Haz clic para cambiar de correo">
+          <span>👤</span>
+          <span id="ndHabitosUserEmail" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px;">Mi Cuenta</span>
+        </div>
+        <a href="index.html" style="display:flex; justify-content:center; align-items:center; gap:0.5rem; text-decoration:none; color:var(--text-muted); font-size:0.85rem; font-weight:600; padding:0.6rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid var(--border); transition:all 0.3s; width:88%;" onmouseover="this.style.color='#f0e6c8';this.style.background='rgba(255,255,255,0.08)';" onmouseout="this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.03)';">
+          <span>←</span> Central Execute
+        </a>
+        <div class="templanza-badge" style="padding-top:0;">
+          <span class="tb-icon">⚖️</span>
+          <div class="tb-text">
+            <span class="tb-name">TEMPLANZA</span>
+            <span class="tb-sub">digital</span>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="main-content">
+
+      <!-- ===== TAB: UNIFICADO (CENTRO DE HÁBITOS & RADAR 5 ÁREAS) ===== -->
+      <section class="tab-panel active" id="tab-monthly">
+        <div class="month-header">
+          <div class="month-header-left">
+            <div class="progress-hero">
+              <span class="progress-label">Tu progreso global</span>
+              <div class="progress-track">
+                <div class="progress-fill" id="monthProgressFill"></div>
+              </div>
+              <span class="progress-pct" id="monthProgressPct">0%</span>
+            </div>
+          </div>
+          <div class="month-title-block">
+            <h1 class="month-big-title" id="monthBigTitle">octubre</h1>
+            <div class="month-year" id="monthYear">2026</div>
+          </div>
+          <div class="month-actions">
+            <button class="btn-gold" id="addHabitBtn" style="padding: 10px 20px; font-size: 0.9rem;">
+              <span>+</span> Nuevo Hábito
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. RADAR DE LAS 5 ÁREAS DE LA VIDA (Grande + Información a su costado) -->
+        <div class="weekly-section" style="margin-bottom: 32px;">
+          <div class="radar-header">
+            <div>
+              <h2 class="radar-title">🕸️ Radar de las 5 Áreas de la Vida</h2>
+              <p class="radar-sub">Balance dinámico calculado en tiempo real con tus hábitos semanales y mensuales</p>
+            </div>
+            <div class="radar-overall-badge">
+              <span class="rob-num" id="radarOverallPct">0%</span>
+              <span class="rob-label">Balance Global</span>
+            </div>
+          </div>
+
+          <div class="radar-layout">
+            <!-- Gráfico Grande -->
+            <div class="radar-chart-card">
+              <div class="radar-card-header">
+                <span class="rch-tag">Gráfico Multidimensional (5 Áreas)</span>
+                <div class="rch-legend">
+                  <span class="rch-dot" style="background: #f1c40f;"></span><span>Cumplimiento Real</span>
+                  <span class="rch-dot" style="background: #3498db; margin-left: 12px;"></span><span>Meta Óptima (100%)</span>
+                </div>
+              </div>
+              <div class="radar-canvas-wrap">
+                <canvas id="radarChartCanvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Información escrita a su costado (5 Áreas Breakdown) -->
+            <div class="radar-side-info" id="radarSideInfo">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. PLANIFICADOR DE HÁBITOS SEMANALES (Con casillas de cumplimiento - Estilo Imagen 2) -->
+        <div class="weekly-section" style="margin-bottom: 36px;">
+          <div class="weekly-planner-header">
+            <div>
+              <h2 class="wp-title">📋 Hábitos Semanales</h2>
+              <p class="wp-sub">Casillas de cumplimiento por días elegidos a la semana</p>
+            </div>
+          </div>
+
+          <div class="wp-table-card">
+            <div class="wp-table-header">
+              <div class="wp-th wp-col-habit">Hábito <span class="wp-sort-arrow">▼</span></div>
+              <div class="wp-th wp-col-days">Días Elegidos <span class="wp-sort-arrow">▼</span></div>
+              <div class="wp-th wp-col-boxes">Casillas de Cumplimiento <span class="wp-sort-arrow">▼</span></div>
+              <div class="wp-th wp-col-ops"></div>
+            </div>
+            <div class="wp-table-body" id="weeklyPlannerList">
+              <!-- Dynamic rows -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. SEGUIMIENTO MENSUAL DE HÁBITOS (Gadzhi Tracker Grid) -->
+        <div class="weekly-section" style="margin-bottom: 32px;">
+          <div class="weekly-title" style="font-size: 1.4rem; margin-bottom: 12px;">📅 Seguimiento Mensual Diario</div>
+          
+          <div class="month-tabs-bar">
+            <button class="month-tab-btn" data-month="0">Ene</button>
+            <button class="month-tab-btn" data-month="1">Feb</button>
+            <button class="month-tab-btn" data-month="2">Mar</button>
+            <button class="month-tab-btn" data-month="3">Abr</button>
+            <button class="month-tab-btn" data-month="4">May</button>
+            <button class="month-tab-btn" data-month="5">Jun</button>
+            <button class="month-tab-btn" data-month="6">Jul</button>
+            <button class="month-tab-btn" data-month="7">Ago</button>
+            <button class="month-tab-btn" data-month="8">Sep</button>
+            <button class="month-tab-btn" data-month="9">Oct</button>
+            <button class="month-tab-btn" data-month="10">Nov</button>
+            <button class="month-tab-btn" data-month="11">Dic</button>
+          </div>
+
+          <div class="grid-wrapper">
+            <div class="tracker-grid" id="trackerGrid"></div>
+          </div>
+        </div>
+
+        <!-- Monthly Notes Area -->
+        <div class="notes-section" style="margin-bottom: 32px;">
+          <div class="ns-header">
+            <span class="ns-icon">📝</span>
+            <span class="ns-title">Notas de Mejora del Mes</span>
+          </div>
+          <textarea id="monthlyNotes" class="ns-textarea" placeholder="Escribe aquí tus observaciones: en qué hábitos estás fallando, cómo mejorar tu rendimiento, o reflexiones del mes..."></textarea>
+        </div>
+
+        <!-- Line/Area chart of daily progress -->
+        <div class="weekly-section" id="lineChartSection" style="margin-bottom: 32px;">
+          <div class="weekly-title">📈 Progreso Diario Mensual</div>
+          <div class="chart-container" style="position: relative; height:250px; width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:10px;">
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Weekly donuts -->
+        <div class="weekly-section" style="margin-bottom: 32px;">
+          <div class="weekly-title">🍩 Tareas Realizadas Semanalmente %</div>
+          <div class="weekly-donuts" id="weeklyDonuts"></div>
+        </div>
+      </section>
+
+      <!-- ===== TAB: CALENDARIO ===== -->
+      <section class="tab-panel" id="tab-calendar">
+        <div class="calendar-header">
+          <div class="cal-header-left">
+            <h1 class="cal-title">🗓️ Calendario</h1>
+            <p class="cal-sub">Registra tus tareas importantes</p>
+          </div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrevMonth">◀</button>
+            <span class="cal-month-label" id="calMonthLabel">Marzo 2026</span>
+            <button class="cal-nav-btn" id="calNextMonth">▶</button>
+          </div>
+        </div>
+
+        <div class="calendar-body">
+          <div class="calendar-section">
+            <div class="calendar-grid-box">
+              <div id="calendarGrid"></div>
+            </div>
+          </div>
+          <div class="events-panel">
+            <div class="events-panel-title">📋 Tareas</div>
+            <div id="eventsList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TAB: METAS ANUALES ===== -->
+      <section class="tab-panel" id="tab-annual">
+        <div class="annual-header">
+          <div>
+            <h1 class="annual-title">🎯 Metas <span id="annualYear">2026</span></h1>
+            <p class="annual-sub">Tus grandes objetivos del año</p>
+          </div>
+          <div class="annual-total-badge">
+            <span class="atb-num" id="annualTotalNum">0/0</span>
+            <span class="atb-label">Completadas</span>
+          </div>
+        </div>
+        <div class="annual-grid" id="annualGrid"></div>
+        <div class="templanza-watermark">
+          <span class="tw-icon">⚖️</span>
+          <div><div class="tw-name">TEMPLANZA</div><div class="tw-sub">digital</div></div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ── BOTTOM NAV (mobile only) ── -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="bottom-nav-item active" data-tab="monthly">
+        <span class="bn-icon">⚡</span>
+        <span class="bn-label">Hábitos</span>
+      </button>
+      <button class="bottom-nav-item" data-tab="calendar">
+        <span class="bn-icon">🗓️</span>
+        <span class="bn-label">Calendario</span>
+      </button>
+      <button class="bottom-nav-item" data-tab="annual">
+        <span class="bn-icon">🎯</span>
+        <span class="bn-label">Metas</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== MODAL UNIFICADO: Añadir Hábito ===== -->
+  <div class="modal-overlay" id="addHabitModal" role="dialog" aria-modal="true" aria-labelledby="habitModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="habitModalTitle">Nuevo Hábito</h3>
+        <button class="modal-close-btn" id="closeHabitModal" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <label class="modal-label" for="habitNameInput">Nombre del hábito</label>
+        <input type="text" id="habitNameInput" class="modal-input" placeholder="Ej: Lectura 30 min / Ahorrar 20%" maxlength="60" />
+        
+        <label class="modal-label" for="habitAreaSelect">Área de la Vida (5 Áreas)</label>
+        <select id="habitAreaSelect" class="modal-input modal-select">
+          <option value="finanzas">💰 Finanzas & Riqueza</option>
+          <option value="salud" selected>⚡ Salud & Vitalidad</option>
+          <option value="superacion">🧠 Mente & Sabiduría</option>
+          <option value="relaciones">❤️ Relaciones & Familia</option>
+          <option value="trabajo">🧱 Trabajo & Carrera</option>
+        </select>
+
+        <label class="modal-label" for="habitTypeSelect">Tipo de Hábito</label>
+        <select id="habitTypeSelect" class="modal-input modal-select" onchange="toggleModalHabitType(this.value)">
+          <option value="weekly" selected>📋 Semanal (Con casillas de 1 a 7 días)</option>
+          <option value="monthly">📅 Mensual (Seguimiento diario de 30 días)</option>
+        </select>
+
+        <div id="modalWeeklyDaysGroup" style="margin-top: 1rem;">
+          <label class="modal-label" for="habitDaysSelect">Días elegidos a la semana</label>
+          <select id="habitDaysSelect" class="modal-input modal-select">
+            <option value="1">1 día a la semana (1 casilla)</option>
+            <option value="2">2 días a la semana (2 casillas)</option>
+            <option value="3" selected>3 días a la semana (3 casillas)</option>
+            <option value="4">4 días a la semana (4 casillas)</option>
+            <option value="5">5 días a la semana (5 casillas)</option>
+            <option value="6">6 días a la semana (6 casillas)</option>
+            <option value="7">7 días a la semana (7 casillas)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="cancelHabitModal">Cancelar</button>
+        <button class="btn-gold" id="saveHabitBtn">Guardar Hábito</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Añadir Evento ===== -->
+  <div class="modal-overlay" id="addEventModal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="eventModalTitle">Nuevo Evento</h3>
+        <button class="modal-close-btn" id="closeEventModal" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="event-modal-date" id="eventModalDate"></div>
+        <label class="modal-label" for="eventTitleInput">Tarea importante</label>
+        <input type="text" id="eventTitleInput" class="modal-input" placeholder="Ej: Reunión con cliente, Médico..." maxlength="80" />
+        <label class="modal-label" for="eventPrioritySelect">Prioridad</label>
+        <select id="eventPrioritySelect" class="modal-input modal-select">
+          <option value="urgente">🔴 Urgente</option>
+          <option value="importante" selected>🟡 Importante</option>
+          <option value="normal">🟢 Normal</option>
+          <option value="info">🔵 Info</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="cancelEventModal">Cancelar</button>
+        <button class="btn-gold" id="saveEventBtn">Guardar Evento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-javascript@2"></script>
+  <script src="auth-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // ── Mobile sidebar toggle ──
+    const hamburgerBtn   = document.getElementById('hamburgerBtn');
+    const sidebarEl      = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarClose   = document.getElementById('sidebarClose');
+
+    function openSidebar()  { sidebarEl.classList.add('sidebar-open');  sidebarOverlay.classList.add('active'); document.body.style.overflow='hidden'; }
+    function closeSidebar() { sidebarEl.classList.remove('sidebar-open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow=''; }
+
+    hamburgerBtn.addEventListener('click', openSidebar);
+    sidebarClose.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar when a nav item is clicked on mobile
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => { if (window.innerWidth < 768) closeSidebar(); });
+    });
+
+    // ── Bottom nav sync ──
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    bottomNavItems.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        if (typeof switchTab === 'function') switchTab(tab);
+        bottomNavItems.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Keep bottom nav in sync when sidebar nav is clicked
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const tab = item.dataset.tab;
+        bottomNavItems.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      });
+    });
+
+    // Update active user badge in sidebar
+    const activeEmail = localStorage.getItem('execute_current_user') || localStorage.getItem('nodu_last_email');
+    const emailEl = document.getElementById('ndHabitosUserEmail');
+    if (emailEl && activeEmail) emailEl.textContent = activeEmail;
+  </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="VitalTrack — Tu app de entrenamiento inteligente. Registra, analiza y mejora tu rendimiento físico." />
+  <title>VitalTrack — Fitness Inteligente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="vitaltrack-style.css" />
+</head>
+<body>
+
+  <div class="vt-app">
+
+    <!-- ══ SIDEBAR ══ -->
+    <nav class="vt-sidebar" id="vtSidebar">
+      <div class="vt-logo">
+        <div class="vt-logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M4 14h4l3-8 4 16 3-10 2 2h4" stroke="url(#lg1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="lg1" x1="0" y1="0" x2="28" y2="0">
+                <stop offset="0%" stop-color="#00f5a0"/>
+                <stop offset="100%" stop-color="#00d9f5"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="vt-logo-text">
+          <span class="vt-logo-title">VITAL</span>
+          <span class="vt-logo-sub">TRACK</span>
+        </div>
+      </div>
+
+      <div class="vt-user-pill" id="userPill">
+        <div class="vt-avatar" id="userAvatar">?</div>
+        <div class="vt-user-info">
+          <span class="vt-user-name" id="userName">Tu Perfil</span>
+          <span class="vt-user-goal" id="userGoalLabel">Sin meta definida</span>
+        </div>
+      </div>
+
+      <ul class="vt-nav-list">
+        <li class="vt-nav-item active" data-tab="perfil" id="nav-perfil">
+          <span class="vt-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </span>
+          <span class="vt-nav-label">Perfil Biométrico</span>
+        </li>
+        <li class="vt-nav-item" data-tab="log" id="nav-log">
+          <span class="vt-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+          </span>
+          <span class="vt-nav-label">Registro</span>
+        </li>
+        <li class="vt-nav-item" data-tab="diario" id="nav-diario">
+          <span class="vt-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </span>
+          <span class="vt-nav-label">Diario</span>
+        </li>
+      </ul>
+
+      <div class="vt-sidebar-footer">
+        <a href="index.html" style="display:flex; justify-content:center; align-items:center; gap:0.5rem; text-decoration:none; color:var(--text-muted); font-size:0.85rem; font-weight:600; margin-bottom:1rem; padding:0.6rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid var(--border); transition:all 0.3s; width:80%; margin-left:auto; margin-right:auto;" onmouseover="this.style.color='var(--text-main)';this.style.background='rgba(255,255,255,0.08)';" onmouseout="this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.03)';">
+          <span>←</span> Central Nodu
+        </a>
+        <div class="vt-made-badge">
+          <span class="vt-mb-text">by <strong>Nodulat</strong></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ══ MAIN ══ -->
+    <main class="vt-main" id="vtMain">
+
+      <!-- ═══ TAB: PERFIL BIOMÉTRICO ═══ -->
+      <section class="vt-tab active" id="tab-perfil">
+        <div class="vt-page-header">
+          <div class="vt-page-header-text">
+            <h1>Perfil Biométrico</h1>
+            <p>Personaliza la app según tu cuerpo</p>
+          </div>
+          <div class="vt-header-badge" id="bmiChip">IMC: —</div>
+        </div>
+
+        <div class="vt-grid-2">
+          <!-- Datos Básicos -->
+          <div class="vt-card">
+            <div class="vt-card-header">
+              <span class="vt-card-icon">📐</span>
+              <h2>Datos Básicos</h2>
+            </div>
+            <div class="vt-form-grid">
+              <div class="vt-field">
+                <label for="pfAge">Edad</label>
+                <div class="vt-input-wrap">
+                  <input type="number" id="pfAge" min="10" max="100" placeholder="25" />
+                  <span class="vt-unit">años</span>
+                </div>
+              </div>
+              <div class="vt-field">
+                <label for="pfWeight">Peso</label>
+                <div class="vt-input-wrap">
+                  <input type="number" id="pfWeight" min="30" max="300" step="0.1" placeholder="75" />
+                  <span class="vt-unit">kg</span>
+                </div>
+              </div>
+              <div class="vt-field">
+                <label for="pfHeight">Altura</label>
+                <div class="vt-input-wrap">
+                  <input type="number" id="pfHeight" min="100" max="250" placeholder="175" />
+                  <span class="vt-unit">cm</span>
+                </div>
+              </div>
+              <div class="vt-field">
+                <label for="pfBodyFat">% Grasa (opcional)</label>
+                <div class="vt-input-wrap">
+                  <input type="number" id="pfBodyFat" min="3" max="60" step="0.1" placeholder="20" />
+                  <span class="vt-unit">%</span>
+                </div>
+              </div>
+            </div>
+            <button class="vt-btn-primary" id="savePerfil">Guardar Perfil</button>
+          </div>
+
+          <!-- Calculadora Cardio -->
+          <div class="vt-card">
+            <div class="vt-card-header">
+              <span class="vt-card-icon">❤️</span>
+              <h2>Zona Cardio Ideal</h2>
+            </div>
+            <div class="vt-cardio-display" id="cardioDisplay">
+              <div class="vt-cardio-placeholder">Ingresa tu edad para calcular</div>
+            </div>
+          </div>
+
+          <!-- Meta -->
+          <div class="vt-card">
+            <div class="vt-card-header">
+              <span class="vt-card-icon">🎯</span>
+              <h2>Meta Principal</h2>
+            </div>
+            <div class="vt-goal-selector" id="goalSelector">
+              <button class="vt-goal-btn" data-goal="fat_loss">
+                <span class="vt-goal-icon">🔥</span>
+                <span class="vt-goal-name">Pérdida de Grasa</span>
+                <span class="vt-goal-desc">Cardio + déficit calórico</span>
+              </button>
+              <button class="vt-goal-btn" data-goal="maintain">
+                <span class="vt-goal-icon">⚖️</span>
+                <span class="vt-goal-name">Mantenimiento</span>
+                <span class="vt-goal-desc">Equilibrio y salud</span>
+              </button>
+              <button class="vt-goal-btn" data-goal="muscle_gain">
+                <span class="vt-goal-icon">💪</span>
+                <span class="vt-goal-name">Ganancia Muscular</span>
+                <span class="vt-goal-desc">Fuerza + hipertrofia</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="vt-card">
+            <div class="vt-card-header">
+              <span class="vt-card-icon">📊</span>
+              <h2>Métricas Calculadas</h2>
+            </div>
+            <div class="vt-stats-grid" id="statsGrid">
+              <div class="vt-stat-item">
+                <span class="vt-stat-val" id="statBMI">—</span>
+                <span class="vt-stat-label">IMC</span>
+              </div>
+              <div class="vt-stat-item">
+                <span class="vt-stat-val" id="statFatMass">—</span>
+                <span class="vt-stat-label">Masa Grasa</span>
+              </div>
+              <div class="vt-stat-item">
+                <span class="vt-stat-val" id="statLeanMass">—</span>
+                <span class="vt-stat-label">M. Magra</span>
+              </div>
+              <div class="vt-stat-item">
+                <span class="vt-stat-val" id="statHRmax">—</span>
+                <span class="vt-stat-label">FC Máx</span>
+              </div>
+              <div class="vt-stat-item">
+                <span class="vt-stat-val" id="statKmWeek">—</span>
+                <span class="vt-stat-label">km/sem</span>
+              </div>
+              <div class="vt-stat-item">
+                <span class="vt-stat-val" id="statCategory">—</span>
+                <span class="vt-stat-label">Categoría IMC</span>
+              </div>
+            </div>
+            <div class="vt-card-footer" style="margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
+              <button class="vt-btn-danger small" id="resetAllDataBtn" style="width: auto; padding: 6px 14px;">🗑️ Reiniciar Datos</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB: REGISTRO ENTRENAMIENTO ═══ -->
+      <section class="vt-tab" id="tab-log">
+        <div class="vt-page-header">
+          <div class="vt-page-header-text">
+            <h1>Registro de Entrenamiento</h1>
+            <p id="logDateLabel">Hoy</p>
+          </div>
+          <div class="vt-header-actions">
+            <button class="vt-btn-secondary" id="manageExercisesBtn">📚 Biblioteca</button>
+            <button class="vt-btn-primary" id="startSessionBtn">▶ Nueva Sesión</button>
+          </div>
+        </div>
+
+        <!-- Sesión Activa -->
+        <div class="vt-session-panel" id="sessionPanel" style="display:none;">
+          <div class="vt-session-header">
+            <div class="vt-session-info">
+              <span class="vt-session-badge">EN SESIÓN</span>
+              <div class="vt-session-dur-wrap">
+                <input type="number" id="sessionDurInput" min="1" max="600" step="1" placeholder="45" class="vt-dur-input" />
+                <span class="vt-dur-label">min</span>
+              </div>
+            </div>
+            <div class="vt-session-acts">
+              <button class="vt-btn-ghost" id="addExerciseBtn">+ Ejercicio</button>
+              <button class="vt-btn-danger" id="endSessionBtn">Guardar Sesión</button>
+            </div>
+          </div>
+
+          <!-- Muscle Group Filter -->
+          <div class="vt-muscle-chips" id="muscleChips">
+            <button class="vt-chip active" data-group="all">Todos</button>
+            <button class="vt-chip" data-group="Pecho">💪 Pecho</button>
+            <button class="vt-chip" data-group="Espalda">🦾 Espalda</button>
+            <button class="vt-chip" data-group="Piernas">🦵 Piernas</button>
+            <button class="vt-chip" data-group="Hombros">⚡ Hombros</button>
+            <button class="vt-chip" data-group="Bíceps">💪 Bíceps</button>
+            <button class="vt-chip" data-group="Tríceps">🔱 Tríceps</button>
+            <button class="vt-chip" data-group="Abdomen">🔥 Abdomen</button>
+            <button class="vt-chip" data-group="Cardio">🏃 Cardio</button>
+          </div>
+
+          <!-- Exercises in session -->
+          <div class="vt-exercises-list" id="exercisesList"></div>
+        </div>
+
+        <!-- Sessions history -->
+        <div class="vt-sessions-history" id="sessionsHistory">
+          <h2 class="vt-section-title">Sesiones Anteriores</h2>
+          <div id="historyList" class="vt-history-list"></div>
+        </div>
+
+      </section>
+
+
+
+      <!-- ═══ TAB: DIARIO ═══ -->
+      <section class="vt-tab" id="tab-diario">
+        <div class="vt-page-header">
+          <div class="vt-page-header-text">
+            <h1>Diario de Sensaciones</h1>
+            <p>¿Cómo te sentiste hoy?</p>
+          </div>
+        </div>
+
+        <div class="vt-grid-journal">
+          <!-- Nueva entrada -->
+          <div class="vt-card vt-journal-new">
+            <div class="vt-card-header">
+              <span class="vt-card-icon">✍️</span>
+              <h2>Nueva Entrada — <span id="journalDate"></span></h2>
+            </div>
+            <div class="vt-journal-form">
+              <div class="vt-energy-selector">
+                <label>Nivel de Energía</label>
+                <div class="vt-energy-btns" id="energyBtns">
+                  <button class="vt-energy-btn" data-level="1" title="Muy bajo">😴</button>
+                  <button class="vt-energy-btn" data-level="2" title="Bajo">😕</button>
+                  <button class="vt-energy-btn" data-level="3" title="Normal">😐</button>
+                  <button class="vt-energy-btn" data-level="4" title="Bueno">😄</button>
+                  <button class="vt-energy-btn" data-level="5" title="Excelente">🔥</button>
+                </div>
+              </div>
+
+              <div class="vt-sleep-field">
+                <label for="sleepHours">Horas dormidas</label>
+                <div class="vt-input-wrap">
+                  <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="7.5" />
+                  <span class="vt-unit">h</span>
+                </div>
+              </div>
+
+              <div class="vt-mood-tags">
+                <label>¿Cómo te sentiste?</label>
+                <div class="vt-tags" id="moodTags">
+                  <button class="vt-tag" data-tag="fatigado">😫 Fatigado</button>
+                  <button class="vt-tag" data-tag="dolorido">🤕 Dolorido</button>
+                  <button class="vt-tag" data-tag="motivado">⚡ Motivado</button>
+                  <button class="vt-tag" data-tag="estresado">😤 Estresado</button>
+                  <button class="vt-tag" data-tag="descansado">🌿 Descansado</button>
+                  <button class="vt-tag" data-tag="enfocado">🎯 Enfocado</button>
+                  <button class="vt-tag" data-tag="bajo_sueno">😴 Sueño insuf.</button>
+                  <button class="vt-tag" data-tag="fuerte">💪 Fuerte</button>
+                </div>
+              </div>
+
+              <div class="vt-field">
+                <label for="journalText">¿Cómo fue el entrenamiento?</label>
+                <textarea id="journalText" class="vt-textarea" rows="4" placeholder="Escribe cómo te sentiste hoy en el gym, qué fue bien, qué fue difícil..."></textarea>
+              </div>
+
+              <button class="vt-btn-primary" id="saveJournalBtn">Guardar Entrada</button>
+            </div>
+          </div>
+
+          <!-- Historial diario -->
+          <div class="vt-card vt-journal-history">
+            <div class="vt-card-header">
+              <span class="vt-card-icon">📚</span>
+              <h2>Historial</h2>
+            </div>
+            <div class="vt-journal-list" id="journalList"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ══ MODAL: Biblioteca de Ejercicios ══ -->
+  <div class="vt-modal-overlay" id="exerciseLibraryModal">
+    <div class="vt-modal">
+      <div class="vt-modal-header">
+        <h3>📚 Biblioteca de Ejercicios</h3>
+        <button class="vt-modal-close" id="closeLibraryModal">×</button>
+      </div>
+      <div class="vt-modal-body">
+        <div class="vt-modal-search">
+          <input type="text" id="exSearchInput" placeholder="Buscar ejercicio..." class="vt-modal-input" />
+          <select id="exGroupFilter" class="vt-modal-select">
+            <option value="">Todos los grupos</option>
+            <option>Pecho</option>
+            <option>Espalda</option>
+            <option>Piernas</option>
+            <option>Hombros</option>
+            <option>Bíceps</option>
+            <option>Tríceps</option>
+            <option>Abdomen</option>
+            <option>Cardio</option>
+          </select>
+        </div>
+        <div class="vt-exercise-grid" id="exerciseGrid"></div>
+        <div class="vt-modal-divider">Crear nuevo ejercicio</div>
+        <div class="vt-new-exercise-form">
+          <input type="text" id="newExName" placeholder="Nombre del ejercicio" class="vt-modal-input" />
+          <select id="newExGroup" class="vt-modal-select">
+            <option value="">Grupo muscular</option>
+            <option>Pecho</option>
+            <option>Espalda</option>
+            <option>Piernas</option>
+            <option>Hombros</option>
+            <option>Bíceps</option>
+            <option>Tríceps</option>
+            <option>Abdomen</option>
+            <option>Cardio</option>
+          </select>
+          <button class="vt-btn-primary" id="createExerciseBtn">+ Crear Ejercicio</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: Agregar Ejercicio a sesión ══ -->
+  <div class="vt-modal-overlay" id="addExerciseModal">
+    <div class="vt-modal">
+      <div class="vt-modal-header">
+        <h3>Agregar Ejercicio</h3>
+        <button class="vt-modal-close" id="closeAddExModal">×</button>
+      </div>
+      <div class="vt-modal-body">
+        <input type="text" id="selectExSearch" placeholder="Buscar..." class="vt-modal-input" />
+        <div class="vt-exercise-pick-list" id="exercisePickList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: Registrar Peso Corporal ══ -->
+  <div class="vt-modal-overlay" id="bodyWeightModal">
+    <div class="vt-modal sm">
+      <div class="vt-modal-header">
+        <h3>Registrar Peso Corporal</h3>
+        <button class="vt-modal-close" id="closeBodyWeightModal">×</button>
+      </div>
+      <div class="vt-modal-body">
+        <div class="vt-field">
+          <label for="bwInput">Peso actual</label>
+          <div class="vt-input-wrap">
+            <input type="number" id="bwInput" min="30" max="300" step="0.1" placeholder="75.5" />
+            <span class="vt-unit">kg</span>
+          </div>
+        </div>
+        <div class="vt-field">
+          <label for="bwDate">Fecha</label>
+          <input type="date" id="bwDate" class="vt-modal-input" />
+        </div>
+        <button class="vt-btn-primary" id="saveBwBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-javascript@2"></script>
+  <script src="auth-app.js"></script>
+  <script src="vitaltrack-app.js"></script>
+</body>
+</html>

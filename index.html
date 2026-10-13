@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Execute - Tu Centro de Mando Personal">
+  <title>Execute — Central de Mando</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="nodu-style.css">
+  
+  <!-- PWA Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffd60a">
+  <link rel="apple-touch-icon" sizes="180x180" href="logo-pegasus.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-pegasus.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="logo-pegasus.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="logo-pegasus.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="logo-pegasus.png">
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registrado', reg))
+          .catch(err => console.log('Error al registrar Service Worker', err));
+      });
+    }
+  <!-- Supabase Client JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-javascript@2"></script>
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="nd-bg-glow nd-glow-1"></div>
+  <div class="nd-bg-glow nd-glow-2"></div>
+  <div class="nd-bg-glow nd-glow-3"></div>
+
+  <!-- ===== GATEKEEPER / AUTH MODAL (REGISTRO Y LOGIN OBLIGATORIO) ===== -->
+  <div class="auth-gatekeeper-overlay" id="ndGatekeeper" style="display:flex;">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="auth-icon">⚡</span>
+        <h2 class="auth-title">Bienvenido a Execute</h2>
+        <p class="auth-sub">Ingresa tu correo electrónico para acceder. Toda tu información se guardará bajo tu perfil personal.</p>
+      </div>
+
+      <div class="auth-form" onkeydown="if(event.key==='Enter') handleFrictionlessLogin()">
+        <div class="auth-field">
+          <label for="ndAuthEmail">Tu Correo Electrónico</label>
+          <div style="display:flex; gap:8px;">
+            <input type="email" id="ndAuthEmail" placeholder="tu_correo@ejemplo.com" class="auth-input" style="flex:1;" required autofocus />
+            <button type="button" onclick="document.getElementById('ndAuthEmail').value=''; document.getElementById('ndAuthEmail').focus();" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; border-radius:10px; padding:0 14px; font-size:0.8rem; font-weight:700; cursor:pointer;" title="Borrar y escribir otro correo">
+              Borrar
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-field" style="display:none;">
+          <label for="ndAuthPass">Contraseña (Opcional)</label>
+          <input type="password" id="ndAuthPass" placeholder="••••••••" class="auth-input" />
+        </div>
+
+        <div class="auth-actions">
+          <button class="btn-primary-auth" id="btnFrictionlessLogin" onclick="handleFrictionlessLogin()">
+            🚀 Guardar y Entrar con mi Correo
+          </button>
+        </div>
+
+        <div style="text-align:center; margin-top:12px;">
+          <button type="button" onclick="ExecuteAuth.openCloudModal()" style="background:transparent; border:none; color:#f1c40f; font-size:0.8rem; cursor:pointer; text-decoration:underline;">
+            ☁️ Configurar Sincronización en la Nube (PC ↔ Celular)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="nd-app" id="ndMainApp" style="display:none;">
+    
+    <!-- PWA Install Banner for Mobile -->
+    <div id="pwaInstallBanner" style="display:none; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 14px; padding: 12px 16px; margin-bottom: 1.5rem; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <span style="font-size: 1.6rem;">📲</span>
+        <div>
+          <strong style="color: #fff; font-size: 0.9rem; display:block;">Instalar Execute en tu celular</strong>
+          <span style="color: #94a3b8; font-size: 0.75rem;">Para acceder rápido y usar sin internet</span>
+        </div>
+      </div>
+      <button id="pwaInstallBtn" style="background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;">Instalar</button>
+    </div>
+
+    <!-- Top Header / Greeting -->
+    <header class="nd-header">
+      <div class="nd-greeting-wrap">
+        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #a8b2d1; margin-bottom: 0.75rem;">Centro de Mando Personal</div>
+        <h1 class="nd-greeting" id="ndGreeting">Empieza el cambio con <span class="nd-accent">Execute</span></h1>
+        <div class="nd-header-row">
+          <p class="nd-date" id="ndDate">Lunes, 15 de Marzo</p>
+        </div>
+        <div id="ndAuthContainer" style="margin-top: 10px;"></div>
+      </div>
+      <div class="nd-time-wrap">
+        <div class="nd-time" id="ndTime">00:00</div>
+      </div>
+    </header>
+
+    <!-- App Grid -->
+    <main class="nd-main">
+      <h2 class="nd-section-title">Ecosistema</h2>
+      
+      <div class="nd-grid">
+        
+        <!-- App 1: Hábitos Gadzhi -->
+        <a href="habitos.html" class="nd-card" id="cardHabitos">
+          <div class="nd-card-glow"></div>
+          <div class="nd-card-top">
+            <div class="nd-icon-wrap" style="background: linear-gradient(135deg, #10b981, #059669);">
+              <span class="nd-icon">🌿</span>
+            </div>
+            <div class="nd-status" id="statHabitos">Cargando...</div>
+          </div>
+          <div class="nd-card-bottom">
+            <h3 class="nd-card-title">Hábitos Gadzhi</h3>
+            <p class="nd-card-desc">Construye tu mejor versión día a día.</p>
+          </div>
+        </a>
+
+        <!-- App 2: VitalTrack -->
+        <a href="vitaltrack.html" class="nd-card" id="cardVital">
+          <div class="nd-card-glow"></div>
+          <div class="nd-card-top">
+            <div class="nd-icon-wrap" style="background: linear-gradient(135deg, #00f5a0, #00d9f5);">
+              <span class="nd-icon">💪</span>
+            </div>
+            <div class="nd-status" id="statVital">Cargando...</div>
+          </div>
+          <div class="nd-card-bottom">
+            <h3 class="nd-card-title">VitalTrack</h3>
+            <p class="nd-card-desc">Entrenamiento inteligente y métricas corporales.</p>
+          </div>
+        </a>
+
+        <!-- App 3: FlowState / Secuencial -->
+        <a href="seq-task.html" class="nd-card" id="cardFlow">
+          <div class="nd-card-glow"></div>
+          <div class="nd-card-top">
+            <div class="nd-icon-wrap" style="background: linear-gradient(135deg, #a855f7, #ec4899);">
+              <span class="nd-icon">⏳</span>
+            </div>
+            <div class="nd-status" id="statFlow">Cargando...</div>
+          </div>
+          <div class="nd-card-bottom">
+            <h3 class="nd-card-title">FlowState</h3>
+            <p class="nd-card-desc">Trabajo secuencial y recetas de enfoque profundo.</p>
+          </div>
+        </a>
+
+        <!-- App 4: Finanzas 50/30/20 -->
+        <a href="finanzas.html" class="nd-card" id="cardFin">
+          <div class="nd-card-glow"></div>
+          <div class="nd-card-top">
+            <div class="nd-icon-wrap" style="background: linear-gradient(135deg, #f59e0b, #eab308);">
+              <span class="nd-icon">💵</span>
+            </div>
+            <div class="nd-status" id="statFin">Cargando...</div>
+          </div>
+          <div class="nd-card-bottom">
+            <h3 class="nd-card-title">Finanzas</h3>
+            <p class="nd-card-desc">Gestor de ingresos regla 50/30/20.</p>
+          </div>
+        </a>
+
+      </div>
+    </main>
+
+    <footer class="nd-footer">
+      <span>Sistema Central</span>
+      <span class="nd-dot">•</span>
+      <span>Execute OS</span>
+    </footer>
+
+  </div>
+
+  <script src="nodu-app.js"></script>
+  <script src="auth-app.js"></script>
+  <script>
+    let deferredPrompt;
+    const banner = document.getElementById('pwaInstallBanner');
+    const btn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (banner) banner.style.display = 'flex';
+    });
+
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            banner.style.display = 'none';
+          }
+          deferredPrompt = null;
+        } else {
+          alert('Para instalar en iPhone (Safari): Presiona el botón Compartir (el cuadro con flecha) y luego "Agregar a pantalla de inicio".\n\nEn Android (Chrome): Presiona los tres puntos arriba a la derecha y selecciona "Instalar aplicación".');
+        }
+      });
+    }
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isMobile && !isStandalone && banner) {
+      banner.style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
